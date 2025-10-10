@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>যৌথ খরচের হিসাব (চূড়ান্ত)</title>
+    <title>যৌথ খরচের হিসাব (হ্যাশিং সহ)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -22,6 +22,10 @@
         .btn-secondary:hover { background-color: #4b5563; }
         .loader { border: 4px solid #f3f3f3; border-radius: 50%; border-top: 4px solid #4f46e5; width: 40px; height: 40px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .toast { visibility: hidden; min-width: 250px; background-color: #333; color: #fff; text-align: center; border-radius: 8px; padding: 16px; position: fixed; z-index: 100; left: 50%; transform: translateX(-50%); bottom: 30px; opacity: 0; transition: opacity 0.5s, bottom 0.5s, visibility 0.5s; }
+        .toast.show { visibility: visible; opacity: 1; }
+        .toast.success { background-color: #28a745; }
+        .toast.error { background-color: #dc3545; }
     </style>
 </head>
 <body class="text-gray-800">
@@ -33,11 +37,15 @@
     </div>
 
     <div id="appContent" class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 opacity-0 transition-opacity duration-500">
-        <header class="mb-8 text-center">
+        <header class="mb-8 text-center relative">
             <h1 class="text-3xl md:text-4xl font-bold text-gray-900">যৌথ খরচের হিসাব</h1>
             <p class="text-gray-500 mt-2">একটি সুরক্ষিত ও রিয়েল-টাইম হিসাব খাতা</p>
+            <button id="openChangePasswordModalBtn" class="absolute top-0 right-0 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg transition duration-300 text-sm">
+                পাসওয়ার্ড পরিবর্তন
+            </button>
         </header>
 
+        <!-- Summary & Add Expense Sections (HTML structure remains the same) -->
         <!-- Summary Section -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div class="bg-white p-6 rounded-xl shadow-md text-center">
@@ -56,7 +64,7 @@
 
         <!-- Add Expense Form -->
         <div class="bg-white p-6 rounded-xl shadow-md mb-8">
-            <h3 class="text-xl font-bold mb-4">নতুন খরচ যোগ করুন</h3>
+             <h3 class="text-xl font-bold mb-4">নতুন খরচ যোগ করুন</h3>
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
                 <div>
                     <label for="personSelect" class="block text-sm font-medium text-gray-700">কার খরচ?</label>
@@ -102,6 +110,7 @@
         </div>
     </div>
 
+    <!-- Modals (HTML structure remains the same) -->
     <!-- Password Modal -->
     <div id="passwordModal" class="fixed inset-0 z-50 flex items-center justify-center hidden modal-backdrop">
         <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-sm modal-content transform scale-95">
@@ -121,7 +130,7 @@
         <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md modal-content transform scale-95">
             <h3 class="text-xl font-bold mb-4">খরচ সম্পাদনা করুন</h3>
             <div class="space-y-4">
-                <div>
+                 <div>
                     <label for="editAmountInput" class="block text-sm font-medium text-gray-700">নতুন টাকার পরিমাণ</label>
                     <input type="number" id="editAmountInput" class="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm data-input">
                 </div>
@@ -137,13 +146,46 @@
         </div>
     </div>
 
-    <!-- Firebase SDK -->
+    <!-- Change Password Modal -->
+    <div id="changePasswordModal" class="fixed inset-0 z-50 flex items-center justify-center hidden modal-backdrop">
+        <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md modal-content transform scale-95">
+            <h3 class="text-xl font-bold mb-4">পাসওয়ার্ড পরিবর্তন করুন</h3>
+            <div class="space-y-4">
+                <div>
+                    <label for="changePassPersonSelect" class="block text-sm font-medium text-gray-700">কার পাসওয়ার্ড?</label>
+                    <select id="changePassPersonSelect" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm data-select">
+                        <option value="Hares">হারেস</option>
+                        <option value="Shamsu">শামসু</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="currentPassInput" class="block text-sm font-medium text-gray-700">পুরোনো পাসওয়ার্ড</label>
+                    <input type="password" id="currentPassInput" class="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm data-input">
+                </div>
+                <div>
+                    <label for="newPassInput" class="block text-sm font-medium text-gray-700">নতুন পাসওয়ার্ড</label>
+                    <input type="password" id="newPassInput" class="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm data-input">
+                </div>
+                <div>
+                    <label for="confirmNewPassInput" class="block text-sm font-medium text-gray-700">নতুন পাসওয়ার্ড নিশ্চিত করুন</label>
+                    <input type="password" id="confirmNewPassInput" class="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm data-input">
+                </div>
+                <p id="changePassError" class="text-red-500 text-xs pt-2 hidden"></p>
+            </div>
+            <div class="mt-6 flex justify-end space-x-3">
+                <button id="changePassCancelBtn" class="py-2 px-4 rounded-md font-semibold btn-secondary">বাতিল</button>
+                <button id="changePassConfirmBtn" class="py-2 px-4 rounded-md font-semibold btn-primary">সংরক্ষণ করুন</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, serverTimestamp, query, orderBy, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
         
-        // --- START: Firebase Configuration (USER PROVIDED) ---
         const firebaseConfig = {
             apiKey: "AIzaSyAWUBzk4lHHEByHFSZBmTZbJ10NnhH7i6g",
             authDomain: "joutho-khoroch-khata.firebaseapp.com",
@@ -152,7 +194,6 @@
             messagingSenderId: "856029576027",
             appId: "1:856029576027:web:5bd703a76fcaa5e8b5787e"
         };
-        // --- END: Firebase Configuration ---
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
@@ -168,6 +209,24 @@
 
         const loadingOverlay = document.getElementById('loadingOverlay');
         const appContent = document.getElementById('appContent');
+        const toastEl = document.getElementById('toast');
+        
+        // --- Password Hashing Function ---
+        async function hashPassword(password) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(password);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            return hashHex;
+        }
+
+        // --- Toast & App Initialization Logic (remains the same) ---
+        const showToast = (message, type = 'success') => {
+            toastEl.textContent = message;
+            toastEl.className = `toast show ${type}`;
+            setTimeout(() => { toastEl.className = toastEl.className.replace("show", ""); }, 3000);
+        };
 
         async function initializeAppConfig() {
             try {
@@ -185,21 +244,20 @@
             }
         }
         
-        // --- Generic Modal Logic (FIXED) ---
         const openAnimatedModal = (modalElement) => {
             modalElement.classList.remove('hidden');
             setTimeout(() => {
-                modalElement.style.opacity = 1; // The modal element itself is the backdrop
+                modalElement.style.opacity = 1;
                 modalElement.querySelector('.modal-content').style.transform = 'scale(1)';
             }, 10);
         };
         const closeAnimatedModal = (modalElement) => {
-            modalElement.style.opacity = 0; // The modal element itself is the backdrop
+            modalElement.style.opacity = 0;
             modalElement.querySelector('.modal-content').style.transform = 'scale(0.95)';
             setTimeout(() => modalElement.classList.add('hidden'), 300);
         };
-
-        // --- Password Modal ---
+        
+        // --- Password Modal (Updated with Hashing) ---
         const passwordModal = document.getElementById('passwordModal');
         const passwordInput = document.getElementById('passwordInput');
         const passwordError = document.getElementById('passwordError');
@@ -215,11 +273,14 @@
             passwordInput.focus();
             currentAction = { callback: actionCallback, person: person };
         };
-        passwordConfirmBtn.onclick = () => {
+        passwordConfirmBtn.onclick = async () => {
             if (!currentAction || !passwordsConfig) return;
-            const password = passwordInput.value;
-            const expectedPassword = currentAction.person === 'Hares' ? passwordsConfig.hares_pass : passwordsConfig.shamsu_pass;
-            if (password === expectedPassword) {
+            const enteredPassword = passwordInput.value;
+            const enteredPasswordHash = await hashPassword(enteredPassword);
+            
+            const expectedPasswordHash = currentAction.person === 'Hares' ? passwordsConfig.hares_pass : passwordsConfig.shamsu_pass;
+
+            if (enteredPasswordHash === expectedPasswordHash) {
                 currentAction.callback();
                 closeAnimatedModal(passwordModal);
             } else {
@@ -228,7 +289,7 @@
         };
         passwordCancelBtn.onclick = () => closeAnimatedModal(passwordModal);
 
-        // --- Edit Modal ---
+        // --- Edit Modal (No changes here, it uses the password modal) ---
         const editModal = document.getElementById('editModal');
         const editAmountInput = document.getElementById('editAmountInput');
         const editDescInput = document.getElementById('editDescInput');
@@ -255,9 +316,61 @@
             closeAnimatedModal(editModal);
         };
         editCancelBtn.onclick = () => closeAnimatedModal(editModal);
+        
+        // --- Change Password Modal (Updated with Hashing) ---
+        const changePasswordModal = document.getElementById('changePasswordModal');
+        document.getElementById('openChangePasswordModalBtn').onclick = () => openAnimatedModal(changePasswordModal);
+        document.getElementById('changePassCancelBtn').onclick = () => closeAnimatedModal(changePasswordModal);
+        
+        document.getElementById('changePassConfirmBtn').onclick = async () => {
+            const person = document.getElementById('changePassPersonSelect').value;
+            const currentPass = document.getElementById('currentPassInput').value;
+            const newPass = document.getElementById('newPassInput').value;
+            const confirmNewPass = document.getElementById('confirmNewPassInput').value;
+            const errorEl = document.getElementById('changePassError');
+            
+            errorEl.classList.add('hidden');
 
+            if (!currentPass || !newPass || !confirmNewPass) {
+                errorEl.textContent = 'দয়া করে সকল ঘর পূরণ করুন।';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+            if (newPass !== confirmNewPass) {
+                errorEl.textContent = 'নতুন পাসওয়ার্ড দুটি মিলছে না।';
+                errorEl.classList.remove('hidden');
+                return;
+            }
 
-        // --- Render and Calculation Logic ---
+            const currentPassHash = await hashPassword(currentPass);
+            const expectedCurrentPassHash = person === 'Hares' ? passwordsConfig.hares_pass : passwordsConfig.shamsu_pass;
+            
+            if (currentPassHash !== expectedCurrentPassHash) {
+                errorEl.textContent = 'আপনার পুরোনো পাসওয়ার্ডটি ভুল।';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            try {
+                const newPasswordHash = await hashPassword(newPass);
+                const passwordDocRef = doc(db, "config", "passwords");
+                const fieldToUpdate = person === 'Hares' ? 'hares_pass' : 'shamsu_pass';
+                await updateDoc(passwordDocRef, { [fieldToUpdate]: newPasswordHash });
+                
+                passwordsConfig[fieldToUpdate] = newPasswordHash;
+
+                showToast('পাসওয়ার্ড সফলভাবে পরিবর্তন করা হয়েছে!', 'success');
+                closeAnimatedModal(changePasswordModal);
+                document.getElementById('currentPassInput').value = '';
+                document.getElementById('newPassInput').value = '';
+                document.getElementById('confirmNewPassInput').value = '';
+            } catch (err) {
+                console.error("Password update error:", err);
+                showToast('পাসওয়ার্ড পরিবর্তনে সমস্যা হয়েছে।', 'error');
+            }
+        };
+
+        // --- Render, CRUD, and Event Listeners (No changes needed here) ---
         const tableBody = document.getElementById('tableBody');
         const formatCurrency = (amount) => `৳${amount.toLocaleString('bn-BD', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
@@ -287,7 +400,6 @@
             addTableEventListeners();
         };
         
-        // --- Firestore CRUD ---
         const addExpense = async (person, amount, description) => {
             await addDoc(expensesCollection, { person, amount: Number(amount), description, createdAt: serverTimestamp() });
             document.getElementById('amountInput').value = '';
@@ -298,7 +410,6 @@
             await updateDoc(doc(db, "expenses", id), { amount: Number(amount), description });
         };
 
-        // --- Event Listeners ---
         function addTableEventListeners() {
             document.querySelectorAll('.delete-btn').forEach(button => {
                 button.onclick = (e) => {
@@ -339,7 +450,6 @@
             document.body.removeChild(link);
         };
 
-        // --- Real-time listener & Initial Load ---
         onSnapshot(query(expensesCollection, orderBy("createdAt", "desc")), (snapshot) => {
             expenses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             renderTable();
@@ -349,4 +459,3 @@
     </script>
 </body>
 </html>
-
