@@ -45,7 +45,6 @@
             </button>
         </header>
 
-        <!-- Summary & Add Expense Sections (HTML structure remains the same) -->
         <!-- Summary Section -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div class="bg-white p-6 rounded-xl shadow-md text-center">
@@ -65,7 +64,7 @@
         <!-- Add Expense Form -->
         <div class="bg-white p-6 rounded-xl shadow-md mb-8">
              <h3 class="text-xl font-bold mb-4">নতুন খরচ যোগ করুন</h3>
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
                 <div>
                     <label for="personSelect" class="block text-sm font-medium text-gray-700">কার খরচ?</label>
                     <select id="personSelect" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm data-select">
@@ -81,6 +80,10 @@
                     <label for="descInput" class="block text-sm font-medium text-gray-700">খরচের বিবরণ</label>
                     <input type="text" id="descInput" placeholder="বিবরণ লিখুন" class="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm data-input">
                 </div>
+                <div>
+                    <label for="dateInput" class="block text-sm font-medium text-gray-700">তারিখ</label>
+                    <input type="date" id="dateInput" class="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm data-input">
+                </div>
             </div>
             <div class="mt-4 flex justify-end">
                 <button id="addExpenseBtn" class="py-2 px-6 rounded-lg font-semibold shadow-md transition-transform transform hover:scale-105 btn-primary">খরচ যোগ করুন</button>
@@ -94,6 +97,7 @@
                     <thead class="bg-gray-50">
                         <tr>
                             <th class="p-4 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">খরচকারী</th>
+                            <th class="p-4 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">তারিখ</th>
                             <th class="p-4 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">বিবরণ</th>
                             <th class="p-4 text-right text-sm font-semibold text-gray-600 uppercase tracking-wider">টাকার পরিমাণ</th>
                             <th class="p-4 text-center text-sm font-semibold text-gray-600 uppercase tracking-wider">পদক্ষেপ</th>
@@ -110,8 +114,7 @@
         </div>
     </div>
 
-    <!-- Modals (HTML structure remains the same) -->
-    <!-- Password Modal -->
+    <!-- Modals -->
     <div id="passwordModal" class="fixed inset-0 z-50 flex items-center justify-center hidden modal-backdrop">
         <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-sm modal-content transform scale-95">
             <h3 class="text-lg font-bold mb-4">পাসওয়ার্ড দিন</h3>
@@ -125,11 +128,14 @@
         </div>
     </div>
 
-    <!-- Edit Modal -->
     <div id="editModal" class="fixed inset-0 z-50 flex items-center justify-center hidden modal-backdrop">
         <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md modal-content transform scale-95">
             <h3 class="text-xl font-bold mb-4">খরচ সম্পাদনা করুন</h3>
             <div class="space-y-4">
+                 <div>
+                    <label for="editDateInput" class="block text-sm font-medium text-gray-700">নতুন তারিখ</label>
+                    <input type="date" id="editDateInput" class="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm data-input">
+                </div>
                  <div>
                     <label for="editAmountInput" class="block text-sm font-medium text-gray-700">নতুন টাকার পরিমাণ</label>
                     <input type="number" id="editAmountInput" class="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm data-input">
@@ -146,7 +152,6 @@
         </div>
     </div>
 
-    <!-- Change Password Modal -->
     <div id="changePasswordModal" class="fixed inset-0 z-50 flex items-center justify-center hidden modal-backdrop">
         <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md modal-content transform scale-95">
             <h3 class="text-xl font-bold mb-4">পাসওয়ার্ড পরিবর্তন করুন</h3>
@@ -210,8 +215,19 @@
         const loadingOverlay = document.getElementById('loadingOverlay');
         const appContent = document.getElementById('appContent');
         const toastEl = document.getElementById('toast');
+        const dateInput = document.getElementById('dateInput');
+        const editDateInput = document.getElementById('editDateInput');
         
-        // --- Password Hashing Function ---
+        // Set default and max date for date inputs
+        const today = new Date();
+        const offset = today.getTimezoneOffset();
+        const todayLocal = new Date(today.getTime() - (offset*60*1000));
+        const todayString = todayLocal.toISOString().split('T')[0];
+        
+        dateInput.value = todayString;
+        dateInput.max = todayString;
+        editDateInput.max = todayString;
+        
         async function hashPassword(password) {
             const encoder = new TextEncoder();
             const data = encoder.encode(password);
@@ -221,7 +237,6 @@
             return hashHex;
         }
 
-        // --- Toast & App Initialization Logic (remains the same) ---
         const showToast = (message, type = 'success') => {
             toastEl.textContent = message;
             toastEl.className = `toast show ${type}`;
@@ -257,7 +272,6 @@
             setTimeout(() => modalElement.classList.add('hidden'), 300);
         };
         
-        // --- Password Modal (Updated with Hashing) ---
         const passwordModal = document.getElementById('passwordModal');
         const passwordInput = document.getElementById('passwordInput');
         const passwordError = document.getElementById('passwordError');
@@ -289,7 +303,6 @@
         };
         passwordCancelBtn.onclick = () => closeAnimatedModal(passwordModal);
 
-        // --- Edit Modal (No changes here, it uses the password modal) ---
         const editModal = document.getElementById('editModal');
         const editAmountInput = document.getElementById('editAmountInput');
         const editDescInput = document.getElementById('editDescInput');
@@ -299,25 +312,26 @@
 
         const openEditModal = (expense) => {
             currentEditId = expense.id;
+            editDateInput.value = expense.date;
             editAmountInput.value = expense.amount;
             editDescInput.value = expense.description;
             openAnimatedModal(editModal);
         };
         editConfirmBtn.onclick = () => {
+            const newDate = editDateInput.value;
             const newAmount = editAmountInput.value;
             const newDesc = editDescInput.value;
-            if(!newAmount || !newDesc) {
-                alert("দয়া করে উভয় ঘর পূরণ করুন।");
+            if(!newAmount || !newDesc || !newDate) {
+                alert("দয়া করে সকল ঘর পূরণ করুন।");
                 return;
             }
             const expense = expenses.find(e => e.id === currentEditId);
-            const action = () => updateExpense(currentEditId, newAmount, newDesc);
+            const action = () => updateExpense(currentEditId, newAmount, newDesc, newDate);
             openPasswordModal(action, expense.person, `পরিবর্তন সংরক্ষণ করার জন্য পাসওয়ার্ড দিন।`);
             closeAnimatedModal(editModal);
         };
         editCancelBtn.onclick = () => closeAnimatedModal(editModal);
         
-        // --- Change Password Modal (Updated with Hashing) ---
         const changePasswordModal = document.getElementById('changePasswordModal');
         document.getElementById('openChangePasswordModalBtn').onclick = () => openAnimatedModal(changePasswordModal);
         document.getElementById('changePassCancelBtn').onclick = () => closeAnimatedModal(changePasswordModal);
@@ -370,9 +384,13 @@
             }
         };
 
-        // --- Render, CRUD, and Event Listeners (No changes needed here) ---
         const tableBody = document.getElementById('tableBody');
         const formatCurrency = (amount) => `৳${amount.toLocaleString('bn-BD', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        const formatBengaliDate = (dateString) => {
+            if (!dateString) return '';
+            const options = { day: 'numeric', month: 'long', year: 'numeric' };
+            return new Date(dateString).toLocaleDateString('bn-BD', options);
+        };
 
         const renderTable = () => {
             tableBody.innerHTML = '';
@@ -383,6 +401,7 @@
                 const personColor = expense.person === 'Hares' ? 'text-indigo-600' : 'text-emerald-600';
                 row.innerHTML = `
                     <td class="p-4"><span class="font-bold ${personColor}">${expense.person === 'Hares' ? 'হারেস' : 'শামসু'}</span></td>
+                    <td class="p-4 text-gray-600 text-sm">${formatBengaliDate(expense.date)}</td>
                     <td class="p-4 text-gray-700">${expense.description}</td>
                     <td class="p-4 text-right font-mono text-gray-800">${formatCurrency(expense.amount)}</td>
                     <td class="p-4 text-center">
@@ -400,14 +419,14 @@
             addTableEventListeners();
         };
         
-        const addExpense = async (person, amount, description) => {
-            await addDoc(expensesCollection, { person, amount: Number(amount), description, createdAt: serverTimestamp() });
+        const addExpense = async (person, amount, description, date) => {
+            await addDoc(expensesCollection, { person, amount: Number(amount), description, date, createdAt: serverTimestamp() });
             document.getElementById('amountInput').value = '';
             document.getElementById('descInput').value = '';
         };
         const deleteExpense = async (id) => await deleteDoc(doc(db, "expenses", id));
-        const updateExpense = async (id, amount, description) => {
-            await updateDoc(doc(db, "expenses", id), { amount: Number(amount), description });
+        const updateExpense = async (id, amount, description, date) => {
+            await updateDoc(doc(db, "expenses", id), { amount: Number(amount), description, date });
         };
 
         function addTableEventListeners() {
@@ -429,18 +448,25 @@
             const person = document.getElementById('personSelect').value;
             const amount = document.getElementById('amountInput').value;
             const description = document.getElementById('descInput').value;
-            if (!amount || !description) {
-                alert("দয়া করে টাকার পরিমাণ এবং বিবরণ উভয়ই পূরণ করুন।");
+            const date = document.getElementById('dateInput').value;
+            if (!amount || !description || !date) {
+                alert("দয়া করে সকল ঘর পূরণ করুন।");
                 return;
             }
-            openPasswordModal(() => addExpense(person, amount, description), person, `নতুন খরচ যোগ করার জন্য পাসওয়ার্ড দিন।`);
+            openPasswordModal(() => addExpense(person, amount, description, date), person, `নতুন খরচ যোগ করার জন্য পাসওয়ার্ড দিন।`);
         };
         
         document.getElementById('exportBtn').onclick = () => {
             let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
-            csvContent += ["খরচকারী", "বিবরণ", "টাকার পরিমাণ (৳)"].join(",") + "\r\n";
+            csvContent += ["খরচকারী", "তারিখ", "বিবরণ", "টাকার পরিমাণ (৳)"].join(",") + "\r\n";
             expenses.forEach(ex => {
-                csvContent += [`"${ex.person === 'Hares' ? 'হারেস' : 'শামসু'}"`, `"${ex.description.replace(/"/g, '""')}"`, ex.amount].join(",") + "\r\n";
+                const rowData = [
+                    `"${ex.person === 'Hares' ? 'হারেস' : 'শামসু'}"`,
+                    `"${ex.date}"`,
+                    `"${ex.description.replace(/"/g, '""')}"`,
+                    ex.amount
+                ];
+                csvContent += rowData.join(",") + "\r\n";
             });
             const link = document.createElement("a");
             link.href = encodeURI(csvContent);
@@ -459,4 +485,3 @@
     </script>
 </body>
 </html>
-
