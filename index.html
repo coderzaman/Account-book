@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>যৌথ খরচের হিসাব V2</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Hind Siliguri', sans-serif;
+            background-color: #f7fafc;
+        }
+        .modal-backdrop {
+            background-color: rgba(0,0,0,0.5);
+            transition: opacity 0.3s ease;
+        }
+        .modal-content {
+            transition: transform 0.3s ease;
+        }
+        .data-input:focus, .data-select:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 2px #c7d2fe;
+        }
+        .btn-primary {
+            background-color: #4f46e5;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #4338ca;
+        }
+        .btn-danger {
+            background-color: #dc2626;
+            color: white;
+        }
+        .btn-danger:hover {
+            background-color: #b91c1c;
+        }
+        .btn-secondary {
+            background-color: #6b7280;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background-color: #4b5563;
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <div class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+        <header class="mb-8 text-center">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-900">যৌথ খরচের হিসাব</h1>
+            <p class="text-gray-500 mt-2">একটি সুরক্ষিত ও রিয়েল-টাইম হিসাব খাতা</p>
+        </header>
+
+        <!-- Summary Section -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white p-6 rounded-xl shadow-md text-center">
+                <h2 class="text-lg font-semibold text-gray-800">হারেস কর্তৃক মোট খরচ</h2>
+                <p id="haresTotal" class="text-4xl font-bold text-indigo-600 mt-2">৳০</p>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-md text-center">
+                <h2 class="text-lg font-semibold text-gray-800">শামসু কর্তৃক মোট খরচ</h2>
+                <p id="shamsuTotal" class="text-4xl font-bold text-emerald-600 mt-2">৳০</p>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-md text-center">
+                <h2 class="text-lg font-semibold text-gray-800">সর্বমোট খরচ</h2>
+                <p id="grandTotal" class="text-4xl font-bold text-red-600 mt-2">৳০</p>
+            </div>
+        </div>
+
+        <!-- Add Expense Form -->
+        <div class="bg-white p-6 rounded-xl shadow-md mb-8">
+            <h3 class="text-xl font-bold mb-4">নতুন খরচ যোগ করুন</h3>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                <div>
+                    <label for="personSelect" class="block text-sm font-medium text-gray-700">কার খরচ?</label>
+                    <select id="personSelect" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm data-select">
+                        <option value="Hares">হারেস</option>
+                        <option value="Shamsu">শামসু</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="amountInput" class="block text-sm font-medium text-gray-700">টাকার পরিমাণ</label>
+                    <input type="number" id="amountInput" placeholder="_._" class="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm data-input">
+                </div>
+                <div class="md:col-span-2">
+                    <label for="descInput" class="block text-sm font-medium text-gray-700">খরচের বিবরণ</label>
+                    <input type="text" id="descInput" placeholder="বিবরণ লিখুন" class="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm data-input">
+                </div>
+            </div>
+            <div class="mt-4 flex justify-end">
+                <button id="addExpenseBtn" class="py-2 px-6 rounded-lg font-semibold shadow-md transition-transform transform hover:scale-105 btn-primary">খরচ যোগ করুন</button>
+            </div>
+        </div>
+
+        <!-- Expense Table -->
+        <div class="bg-white rounded-xl shadow-md overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full" id="expenseTable">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="p-4 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">খরচকারী</th>
+                            <th class="p-4 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">বিবরণ</th>
+                            <th class="p-4 text-right text-sm font-semibold text-gray-600 uppercase tracking-wider">টাকার পরিমাণ</th>
+                            <th class="p-4 text-center text-sm font-semibold text-gray-600 uppercase tracking-wider">পদক্ষেপ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody" class="divide-y divide-gray-200">
+                        <!-- Data will be loaded from Firebase -->
+                    </tbody>
+                </table>
+            </div>
+             <div class="p-4 bg-gray-50 border-t flex items-center justify-end">
+                <button id="exportBtn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300">
+                    এক্সেল (.csv) ফাইলে এক্সপোর্ট
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Password Modal -->
+    <div id="passwordModal" class="fixed inset-0 z-50 flex items-center justify-center hidden modal-backdrop">
+        <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-sm modal-content transform scale-95">
+            <h3 class="text-lg font-bold mb-4" id="modalTitle">পাসওয়ার্ড দিন</h3>
+            <p id="modalActionText" class="text-sm text-gray-600 mb-4"></p>
+            <input type="password" id="passwordInput" class="w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm data-input" placeholder="এখানে পাসওয়ার্ড লিখুন">
+            <p id="passwordError" class="text-red-500 text-xs mt-1 hidden">ভুল পাসওয়ার্ড।</p>
+            <div class="mt-6 flex justify-end space-x-3">
+                <button id="cancelBtn" class="py-2 px-4 rounded-md font-semibold btn-secondary">বাতিল</button>
+                <button id="confirmBtn" class="py-2 px-4 rounded-md font-semibold btn-primary">নিশ্চিত করুন</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        
+        // --- START: Firebase Configuration ---
+        // আপনার নিজের Firebase প্রজেক্ট তৈরি করে নিচের কোডটি পরিবর্তন করুন।
+        // Go to your Firebase project settings > General tab and find "Your apps".
+        // Click on the web app icon (</>) and copy the firebaseConfig object here.
+        const firebaseConfig = {
+            apiKey: "AIzaSyAWUBzk4lHHEByHFSZBmTZbJ10NnhH7i6g",
+            authDomain: "joutho-khoroch-khata.firebaseapp.com",
+            projectId: "joutho-khoroch-khata",
+            storageBucket: "joutho-khoroch-khata.firebasestorage.app",
+            messagingSenderId: "856029576027",
+            appId: "1:856029576027:web:5bd703a76fcaa5e8b5787e"
+        };
+        // --- END: Firebase Configuration ---
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        
+        // Sign in anonymously
+        signInAnonymously(auth).catch((error) => console.error("Anonymous sign-in failed:", error));
+
+        const expensesCollection = collection(db, "expenses");
+
+        const HARES_PASS = "serah";
+        const SHAMSU_PASS = "usmahs";
+        let expenses = [];
+
+        // --- UI Elements ---
+        const tableBody = document.getElementById('tableBody');
+        const haresTotalEl = document.getElementById('haresTotal');
+        const shamsuTotalEl = document.getElementById('shamsuTotal');
+        const grandTotalEl = document.getElementById('grandTotal');
+        const modal = document.getElementById('passwordModal');
+        const passwordInput = document.getElementById('passwordInput');
+        const passwordError = document.getElementById('passwordError');
+        const confirmBtn = document.getElementById('confirmBtn');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalActionText = document.getElementById('modalActionText');
+        const exportBtn = document.getElementById('exportBtn');
+
+        let currentAction = null;
+
+        const openModal = (actionCallback, person, actionText) => {
+            modalActionText.textContent = actionText;
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.querySelector('.modal-backdrop').style.opacity = 1;
+                modal.querySelector('.modal-content').style.transform = 'scale(1)';
+            }, 10);
+            passwordInput.value = '';
+            passwordError.classList.add('hidden');
+            passwordInput.focus();
+            currentAction = { callback: actionCallback, person: person };
+        };
+
+        const closeModal = () => {
+            modal.querySelector('.modal-backdrop').style.opacity = 0;
+            modal.querySelector('.modal-content').style.transform = 'scale(0.95)';
+            setTimeout(() => modal.classList.add('hidden'), 300);
+            currentAction = null;
+        };
+
+        confirmBtn.onclick = () => {
+            if (!currentAction) return;
+            const password = passwordInput.value;
+            const expectedPassword = currentAction.person === 'Hares' ? HARES_PASS : SHAMSU_PASS;
+
+            if (password === expectedPassword) {
+                currentAction.callback();
+                closeModal();
+            } else {
+                passwordError.classList.remove('hidden');
+            }
+        };
+
+        cancelBtn.onclick = closeModal;
+
+        const formatCurrency = (amount) => `৳${amount.toLocaleString('bn-BD', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+        const renderTable = () => {
+            tableBody.innerHTML = '';
+            let haresTotal = 0;
+            let shamsuTotal = 0;
+
+            expenses.forEach(expense => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50';
+
+                const personColor = expense.person === 'Hares' ? 'text-indigo-600' : 'text-emerald-600';
+
+                row.innerHTML = `
+                    <td class="p-4"><span class="font-bold ${personColor}">${expense.person === 'Hares' ? 'হারেস' : 'শামসু'}</span></td>
+                    <td class="p-4 text-gray-700">${expense.description}</td>
+                    <td class="p-4 text-right font-mono text-gray-800">${formatCurrency(expense.amount)}</td>
+                    <td class="p-4 text-center">
+                        <button class="edit-btn text-blue-500 hover:text-blue-700 p-1" data-id="${expense.id}">সম্পাদনা</button>
+                        <button class="delete-btn text-red-500 hover:text-red-700 p-1" data-id="${expense.id}" data-person="${expense.person}">মুছুন</button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+
+                if (expense.person === 'Hares') haresTotal += expense.amount;
+                else if (expense.person === 'Shamsu') shamsuTotal += expense.amount;
+            });
+            
+            haresTotalEl.textContent = formatCurrency(haresTotal);
+            shamsuTotalEl.textContent = formatCurrency(shamsuTotal);
+            grandTotalEl.textContent = formatCurrency(haresTotal + shamsuTotal);
+            
+            addTableEventListeners();
+        };
+
+        const addTableEventListeners = () => {
+            document.querySelectorAll('.delete-btn').forEach(button => {
+                button.onclick = (e) => {
+                    const id = e.target.dataset.id;
+                    const person = e.target.dataset.person;
+                    const action = () => deleteExpense(id);
+                    openModal(action, person, `এই খরচটি মুছে ফেলার জন্য "${person === 'Hares' ? 'হারেস' : 'শামসু'}" এর পাসওয়ার্ড দিন।`);
+                };
+            });
+            document.querySelectorAll('.edit-btn').forEach(button => {
+                 button.onclick = (e) => {
+                    alert("সম্পাদনা করার সুবিধাটি শীঘ্রই যোগ করা হবে।");
+                 }
+            });
+        };
+
+        // --- Firestore CRUD Operations ---
+        const addExpense = async (person, amount, description) => {
+            try {
+                await addDoc(expensesCollection, {
+                    person: person,
+                    amount: Number(amount),
+                    description: description,
+                    createdAt: serverTimestamp()
+                });
+                document.getElementById('amountInput').value = '';
+                document.getElementById('descInput').value = '';
+            } catch (error) {
+                console.error("Error adding document: ", error);
+            }
+        };
+        
+        const deleteExpense = async (id) => {
+            try {
+                await deleteDoc(doc(db, "expenses", id));
+            } catch (error) {
+                console.error("Error deleting document: ", error);
+            }
+        };
+
+        // --- Event Listeners ---
+        document.getElementById('addExpenseBtn').onclick = () => {
+            const person = document.getElementById('personSelect').value;
+            const amount = document.getElementById('amountInput').value;
+            const description = document.getElementById('descInput').value;
+
+            if (!amount || !description) {
+                alert("দয়া করে টাকার পরিমাণ এবং বিবরণ উভয়ই পূরণ করুন।");
+                return;
+            }
+
+            const action = () => addExpense(person, amount, description);
+            openModal(action, person, `নতুন খরচ যোগ করার জন্য "${person === 'Hares' ? 'হারেস' : 'শামসু'}" এর পাসওয়ার্ড দিন।`);
+        };
+        
+        const exportToCSV = () => {
+            let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
+            const headers = ["খরচকারী", "বিবরণ", "টাকার পরিমাণ (৳)"];
+            csvContent += headers.join(",") + "\r\n";
+
+            expenses.forEach(expense => {
+                const rowData = [
+                    expense.person === 'Hares' ? 'হারেস' : 'শামসু',
+                    `"${expense.description.replace(/"/g, '""')}"`,
+                    expense.amount
+                ];
+                csvContent += rowData.join(",") + "\r\n";
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "joutho_khoroch.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        };
+
+        exportBtn.addEventListener('click', exportToCSV);
+
+        // --- Real-time listener from Firestore ---
+        const q = query(expensesCollection, orderBy("createdAt", "desc"));
+        onSnapshot(q, (snapshot) => {
+            expenses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            renderTable();
+        });
+
+    </script>
+</body>
+</html>
